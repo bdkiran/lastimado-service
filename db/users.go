@@ -7,16 +7,17 @@ import (
 
 //User type that is used acrross the whole application
 type User struct {
-	UserID   int
-	Username string
-	Password string
-	Email    string
+	UserID    int
+	Firstname string
+	Lastname  string
+	Password  string
+	Email     string
 }
 
 //GetUsers gets and returns all the users from the database.
 func GetUsers() ([]User, error) {
 	log.Println("Getting all users from db")
-	sqlStatement := `SELECT * FROM users;`
+	sqlStatement := `SELECT user_id, firstname, lastname, email FROM users;`
 
 	rows, err := DB.Query(sqlStatement)
 	if err != nil {
@@ -29,7 +30,7 @@ func GetUsers() ([]User, error) {
 	users := []User{}
 	for rows.Next() {
 		var u User
-		err = rows.Scan(&u.UserID, &u.Username, &u.Password, &u.Email)
+		err = rows.Scan(&u.UserID, &u.Firstname, &u.Lastname, &u.Email)
 		if err != nil {
 			log.Println("Error occuredn when scanning rows")
 			return nil, err
@@ -53,7 +54,7 @@ func GetUser(userID int) (User, error) {
 
 	row := DB.QueryRow(sqlStatement, userID)
 	var u User
-	err := row.Scan(&u.UserID, &u.Username, &u.Password, &u.Email)
+	err := row.Scan(&u.UserID, &u.Firstname, &u.Lastname, &u.Email)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return u, err
@@ -70,7 +71,7 @@ func InsertUser(user User) error {
 		`INSERT INTO users (username, password, email) VALUES ($1, $2, $3) returning user_id;`
 
 	var returnID int
-	err := DB.QueryRow(sqlStatement, user.Username, user.Password, user.Email).Scan(&returnID)
+	err := DB.QueryRow(sqlStatement, user.Firstname, user.Lastname, user.Password, user.Email).Scan(&returnID)
 	if err != nil {
 		return err
 	}
@@ -97,9 +98,9 @@ func DeleteUser(userID int) error {
 func UpdateUser(user User) error {
 	log.Println("Update user query called")
 
-	sqlStatement := `UPDATE users SET username=$1, password=$2, email=$3 WHERE user_id=$4;`
+	sqlStatement := `UPDATE users SET firstname=$1, lastname=$2, password=$3, email=$4 WHERE user_id=$5;`
 
-	_, err := DB.Exec(sqlStatement, user.Username, user.Password, user.Email, user.UserID)
+	_, err := DB.Exec(sqlStatement, user.Firstname, user.Lastname, user.Password, user.Email, user.UserID)
 	if err != nil {
 		return err
 	}

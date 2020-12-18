@@ -8,9 +8,19 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func getAllQPosts() fiber.Handler {
+func getQPostsForThread() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		qPosts, err := db.GetQPosts()
+		qPostID, err := strconv.Atoi(c.Params("qThreadID"))
+		if err != nil {
+			c.Status(400)
+			return c.JSON(&fiber.Map{
+				"status": "fail",
+				"data": map[string]interface{}{
+					"qThreadID": "Invalid qThreadID submitted",
+				},
+			})
+		}
+		qPosts, err := db.GetQPostsAndUserInfo(qPostID)
 		if err != nil {
 			c.Status(400)
 			return c.JSON(&fiber.Map{

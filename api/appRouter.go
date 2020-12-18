@@ -13,12 +13,12 @@ func InitializeRoutes(app *fiber.App) {
 	app.Delete("/user/:userID", deleteUser())
 
 	app.Get("/qthreads", getAllQThreads())
-	app.Get("/qthread/:qThreadID", getQThread())
+	app.Get("/qthread/:qThreadSlug", getQThread())
 	app.Post("/qthread", createQThread())
 	app.Put("/qthread", updateQThread())
 	app.Delete("/qthread/:qThreadID", deleteQThread())
 
-	app.Get("/qposts", getAllQPosts())
+	app.Get("/qposts/:qThreadID", getQPostsForThread())
 	app.Get("/qpost/:qPostID", getQPost())
 	app.Post("/qpost", createQPost())
 	app.Put("/qpost", updateQPost())

@@ -15,10 +15,19 @@ type QPost struct {
 	CreatedAt time.Time
 }
 
+//QPostUser type is used across the whole application to represents question posts/responses
+type QPostUser struct {
+	QPostID   int
+	Firstname string
+	Lastname  string
+	Body      string
+	CreatedAt time.Time
+}
+
 //GetQPosts retrieves all of the question posts from the database
-func GetQPosts() ([]QPost, error) {
-	sqlStatement := `SELECT * FROM qPosts;`
-	rows, err := DB.Query(sqlStatement)
+func GetQPosts(qThreadID int) ([]QPost, error) {
+	sqlStatement := `SELECT * FROM qPosts WHERE qThread_id=$1;`
+	rows, err := DB.Query(sqlStatement, qThreadID)
 	if err != nil {
 		log.Println("Error occured when retrieving qPosts")
 		return nil, err
@@ -30,6 +39,38 @@ func GetQPosts() ([]QPost, error) {
 		var qPost QPost
 		err = rows.Scan(&qPost.QPostID, &qPost.QThreadID, &qPost.UserID, &qPost.Body, &qPost.CreatedAt)
 		if err != nil {
+			log.Println("Error occured when scanning rows into qPost type")
+			return nil, err
+		}
+		qPosts = append(qPosts, qPost)
+	}
+	err = rows.Err()
+	if err != nil {
+		log.Println("Error occured when checking qPost row errors")
+		return nil, err
+	}
+
+	return qPosts, err
+}
+
+//GetQPostsAndUserInfo gets posts with user info included.
+func GetQPostsAndUserInfo(qThreadID int) ([]QPostUser, error) {
+	sqlStatement :=
+		`SELECT qPosts.qPost_id, users.firstname, users.lastname, qPosts.body, qPosts.created_at 
+		FROM qPosts INNER JOIN users ON qPosts.user_id=users.user_id and qPosts.qThread_id=$1;`
+	rows, err := DB.Query(sqlStatement, qThreadID)
+	if err != nil {
+		log.Println("Error occured when retrieving qPosts")
+		return nil, err
+	}
+	defer rows.Close()
+
+	qPosts := []QPostUser{}
+	for rows.Next() {
+		var qPost QPostUser
+		err = rows.Scan(&qPost.QPostID, &qPost.Firstname, &qPost.Lastname, &qPost.Body, &qPost.CreatedAt)
+		if err != nil {
+			log.Println(err)
 			log.Println("Error occured when scanning rows into qPost type")
 			return nil, err
 		}

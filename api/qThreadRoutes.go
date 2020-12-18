@@ -28,24 +28,16 @@ func getAllQThreads() fiber.Handler {
 
 func getQThread() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		qThreadID, err := strconv.Atoi(c.Params("qThreadID"))
-		if err != nil {
-			c.Status(400)
-			return c.JSON(&fiber.Map{
-				"status": "fail",
-				"data": map[string]interface{}{
-					"qThreadID": "Invalid qThreadID submitted",
-				},
-			})
-		}
+		qThreadSlug := c.Params("qThreadSlug")
 
-		qThread, err := db.GetQThread(qThreadID)
+		qThread, err := db.GetQThreadBySlug(qThreadSlug)
 		if err != nil {
+			log.Println(err)
 			c.Status(400)
 			return c.JSON(&fiber.Map{
 				"status": "fail",
 				"data": map[string]interface{}{
-					"QThread": "Unable to retrieve user",
+					"QThread": "Unable to retrieve QThread",
 				},
 			})
 		}

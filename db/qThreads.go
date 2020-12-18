@@ -9,6 +9,7 @@ import (
 //QThread type is used across the whole application to represent question threads
 type QThread struct {
 	QThreadID int
+	Slug      string
 	UserID    int
 	Title     string
 	CreatedAt time.Time
@@ -30,8 +31,9 @@ func GetQThreads() ([]QThread, error) {
 	qThreads := []QThread{}
 	for rows.Next() {
 		var qThread QThread
-		err = rows.Scan(&qThread.QThreadID, &qThread.UserID, &qThread.Title, &qThread.CreatedAt)
+		err = rows.Scan(&qThread.QThreadID, &qThread.Slug, &qThread.UserID, &qThread.Title, &qThread.CreatedAt)
 		if err != nil {
+			log.Println(err)
 			log.Println("Error when scaning row into qThread type")
 			return nil, err
 		}
@@ -45,6 +47,24 @@ func GetQThreads() ([]QThread, error) {
 	}
 
 	return qThreads, err
+}
+
+//GetQThreadBySlug retrieves all the question threads from the database using the slug
+func GetQThreadBySlug(slug string) (QThread, error) {
+	log.Printf("Getting qthread by slug: %s", slug)
+	sqlStatement := `SELECT * FROM qThreads WHERE slug=$1;`
+
+	row := DB.QueryRow(sqlStatement, slug)
+
+	var qThread QThread
+	err := row.Scan(&qThread.QThreadID, &qThread.Slug, &qThread.UserID, &qThread.Title, &qThread.CreatedAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return qThread, err
+		}
+		return qThread, err
+	}
+	return qThread, nil
 }
 
 //GetQThread retrieves a single Question Thread from the database
